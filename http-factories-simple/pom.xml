@@ -6,17 +6,17 @@
 
     <parent>
         <groupId>net.jhorstmann</groupId>
-        <artifactId>spring-http-parent</artifactId>
+        <artifactId>http-factories</artifactId>
         <version>1.0-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
-    <artifactId>spring-http-impl-simple</artifactId>
+    <artifactId>http-factories-simple</artifactId>
 
     <dependencies>
         <dependency>
             <groupId>net.jhorstmann</groupId>
-            <artifactId>spring-http-api</artifactId>
+            <artifactId>http-factories-api</artifactId>
             <version>${project.version}</version>
         </dependency>
     </dependencies>

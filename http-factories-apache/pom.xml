@@ -4,9 +4,13 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>net.jhorstmann</groupId>
-    <artifactId>spring-http-impl-http-components</artifactId>
-    <version>1.0-SNAPSHOT</version>
+    <parent>
+        <groupId>net.jhorstmann</groupId>
+        <artifactId>http-factories</artifactId>
+        <version>1.0-SNAPSHOT</version>
+        <relativePath>../pom.xml</relativePath>
+    </parent>
+    <artifactId>http-factories-apache</artifactId>
 
     <properties>
         <maven.compiler.source>1.8</maven.compiler.source>
@@ -17,7 +21,7 @@
     <dependencies>
         <dependency>
             <groupId>net.jhorstmann</groupId>
-            <artifactId>spring-http-api</artifactId>
+            <artifactId>http-factories</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>

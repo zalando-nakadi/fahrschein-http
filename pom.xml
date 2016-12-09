@@ -5,7 +5,7 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>net.jhorstmann</groupId>
-    <artifactId>spring-http-parent</artifactId>
+    <artifactId>http-factories</artifactId>
     <version>1.0-SNAPSHOT</version>
     <packaging>pom</packaging>
 
@@ -16,9 +16,9 @@
     </properties>
 
     <modules>
-        <module>api</module>
-        <module>impl-simple</module>
-        <module>impl-http-components</module>
+        <module>http-factories-api</module>
+        <module>http-factories-simple</module>
+        <module>http-factories-apache</module>
     </modules>
 
 </project>
