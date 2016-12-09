@@ -14,7 +14,14 @@
  * limitations under the License.
  */
 
-package org.springframework.http.client;
+package net.jhorstmann.http.simple;
+
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.client.ClientHttpRequest;
+import org.springframework.http.client.ClientHttpResponse;
+import org.springframework.util.FileCopyUtils;
+import org.springframework.util.StringUtils;
 
 import java.io.IOException;
 import java.net.HttpURLConnection;
@@ -22,11 +29,6 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.List;
 import java.util.Map;
-
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpMethod;
-import org.springframework.util.FileCopyUtils;
-import org.springframework.util.StringUtils;
 
 /**
  * {@link ClientHttpRequest} implementation that uses standard JDK facilities to

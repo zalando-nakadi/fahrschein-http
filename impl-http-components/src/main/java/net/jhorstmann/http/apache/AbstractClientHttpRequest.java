@@ -14,9 +14,11 @@
  * limitations under the License.
  */
 
-package org.springframework.http.client;
+package net.jhorstmann.http.apache;
 
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.client.ClientHttpRequest;
+import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.util.Assert;
 
 import java.io.IOException;

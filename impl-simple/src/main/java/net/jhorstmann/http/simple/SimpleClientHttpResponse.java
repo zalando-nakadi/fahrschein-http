@@ -14,15 +14,16 @@
  * limitations under the License.
  */
 
-package org.springframework.http.client;
+package net.jhorstmann.http.simple;
+
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.client.ClientHttpResponse;
+import org.springframework.util.StreamUtils;
+import org.springframework.util.StringUtils;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
-
-import org.springframework.http.HttpHeaders;
-import org.springframework.util.StreamUtils;
-import org.springframework.util.StringUtils;
 
 /**
  * {@link ClientHttpResponse} implementation that uses standard JDK facilities.

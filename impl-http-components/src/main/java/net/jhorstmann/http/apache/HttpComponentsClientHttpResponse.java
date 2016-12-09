@@ -14,13 +14,14 @@
  * limitations under the License.
  */
 
-package org.springframework.http.client;
+package net.jhorstmann.http.apache;
 
 import org.apache.http.Header;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.util.EntityUtils;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.util.StreamUtils;
 
 import java.io.Closeable;

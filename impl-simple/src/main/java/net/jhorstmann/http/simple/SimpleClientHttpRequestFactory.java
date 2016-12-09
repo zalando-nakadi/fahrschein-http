@@ -14,9 +14,11 @@
  * limitations under the License.
  */
 
-package org.springframework.http.client;
+package net.jhorstmann.http.simple;
 
 import org.springframework.http.HttpMethod;
+import org.springframework.http.client.ClientHttpRequest;
+import org.springframework.http.client.ClientHttpRequestFactory;
 import org.springframework.util.Assert;
 
 import java.io.IOException;
@@ -33,7 +35,6 @@ import java.net.URLConnection;
  * @author Juergen Hoeller
  * @since 3.0
  * @see java.net.HttpURLConnection
- * @see HttpComponentsClientHttpRequestFactory
  */
 public class SimpleClientHttpRequestFactory implements ClientHttpRequestFactory {
 
