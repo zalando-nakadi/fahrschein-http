@@ -21,10 +21,11 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.client.ClientHttpRequest;
 import org.springframework.http.client.ClientHttpResponse;
-import org.springframework.util.FileCopyUtils;
+import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
 import java.io.IOException;
+import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -80,13 +81,28 @@ final class SimpleBufferingClientHttpRequest extends AbstractBufferingClientHttp
 		}
 		this.connection.connect();
 		if (this.connection.getDoOutput()) {
-			FileCopyUtils.copy(bufferedOutput, this.connection.getOutputStream());
+			copy(bufferedOutput, this.connection.getOutputStream());
 		}
 		else {
 			// Immediately trigger the request in a no-output scenario as well
 			this.connection.getResponseCode();
 		}
 		return new SimpleClientHttpResponse(this.connection);
+	}
+
+	private void copy(byte[] bufferedOutput, OutputStream out) throws IOException {
+		Assert.notNull(bufferedOutput, "No input byte array specified");
+		Assert.notNull(out, "No OutputStream specified");
+		try {
+			out.write(bufferedOutput);
+		}
+		finally {
+			try {
+				out.close();
+			}
+			catch (IOException ex) {
+			}
+		}
 	}
 
 

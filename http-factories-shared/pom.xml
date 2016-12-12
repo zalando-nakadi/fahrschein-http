@@ -12,22 +12,11 @@
     </parent>
     <artifactId>http-factories-shared</artifactId>
 
-    <properties>
-        <maven.compiler.source>1.8</maven.compiler.source>
-        <maven.compiler.target>1.8</maven.compiler.target>
-        <project.build.sourceEncoding>utf-8</project.build.sourceEncoding>
-    </properties>
-
     <dependencies>
         <dependency>
             <groupId>net.jhorstmann</groupId>
-            <artifactId>http-factories</artifactId>
+            <artifactId>http-factories-api</artifactId>
             <version>${project.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.httpcomponents</groupId>
-            <artifactId>httpclient</artifactId>
-            <version>4.3.5</version>
         </dependency>
     </dependencies>
 </project>

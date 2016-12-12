@@ -21,8 +21,9 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.client.ClientHttpRequest;
 import org.springframework.http.client.ClientHttpResponse;
-import org.springframework.util.StreamUtils;
+import org.springframework.util.Assert;
 
+import java.io.FilterOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
@@ -85,7 +86,8 @@ final class SimpleStreamingClientHttpRequest extends AbstractClientHttpRequest {
 			this.connection.connect();
 			this.body = this.connection.getOutputStream();
 		}
-		return StreamUtils.nonClosing(this.body);
+		Assert.notNull(this.body, "No OutputStream specified");
+		return new NonClosingOutputStream(this.body);
 	}
 
 	@Override
@@ -107,4 +109,20 @@ final class SimpleStreamingClientHttpRequest extends AbstractClientHttpRequest {
 		return new SimpleClientHttpResponse(this.connection);
 	}
 
+	public static class NonClosingOutputStream extends FilterOutputStream {
+
+		public NonClosingOutputStream(OutputStream out) {
+			super(out);
+		}
+
+		@Override
+		public void write(byte[] b, int off, int let) throws IOException {
+			// It is critical that we override this method for performance
+			out.write(b, off, let);
+		}
+
+		@Override
+		public void close() throws IOException {
+		}
+	}
 }

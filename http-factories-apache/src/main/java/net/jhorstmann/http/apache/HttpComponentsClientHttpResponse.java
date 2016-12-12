@@ -23,8 +23,8 @@ import org.apache.http.HttpResponse;
 import org.apache.http.util.EntityUtils;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.client.ClientHttpResponse;
-import org.springframework.util.StreamUtils;
 
+import java.io.ByteArrayInputStream;
 import java.io.Closeable;
 import java.io.IOException;
 import java.io.InputStream;
@@ -76,7 +76,7 @@ final class HttpComponentsClientHttpResponse extends AbstractClientHttpResponse 
 	@Override
 	public InputStream getBody() throws IOException {
 		HttpEntity entity = this.httpResponse.getEntity();
-		return (entity != null ? entity.getContent() : StreamUtils.emptyInput());
+		return (entity != null ? entity.getContent() : new ByteArrayInputStream(new byte[0]));
 	}
 
 	@Override
