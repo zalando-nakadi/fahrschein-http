@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package net.jhorstmann.http.apache;
+package net.jhorstmann.http.shared;
 
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.client.ClientHttpRequest;

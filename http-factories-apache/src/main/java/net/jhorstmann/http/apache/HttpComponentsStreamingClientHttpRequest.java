@@ -16,6 +16,7 @@
 
 package net.jhorstmann.http.apache;
 
+import net.jhorstmann.http.shared.AbstractClientHttpRequest;
 import org.apache.http.Header;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpEntityEnclosingRequest;

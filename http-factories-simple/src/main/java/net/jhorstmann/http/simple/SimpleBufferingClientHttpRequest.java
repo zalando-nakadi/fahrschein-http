@@ -16,6 +16,7 @@
 
 package net.jhorstmann.http.simple;
 
+import net.jhorstmann.http.shared.AbstractBufferingClientHttpRequest;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.client.ClientHttpRequest;

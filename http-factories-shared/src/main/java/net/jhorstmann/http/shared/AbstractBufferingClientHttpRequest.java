@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package net.jhorstmann.http.apache;
+package net.jhorstmann.http.shared;
 
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.client.ClientHttpRequest;
@@ -31,7 +31,7 @@ import java.io.OutputStream;
  * @author Arjen Poutsma
  * @since 3.0.6
  */
-abstract class AbstractBufferingClientHttpRequest extends AbstractClientHttpRequest {
+public abstract class AbstractBufferingClientHttpRequest extends AbstractClientHttpRequest {
 
 	private ByteArrayOutputStream bufferedOutput = new ByteArrayOutputStream(1024);
 
