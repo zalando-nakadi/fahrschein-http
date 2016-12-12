@@ -19,7 +19,6 @@ package net.jhorstmann.http.simple;
 import net.jhorstmann.http.shared.AbstractClientHttpResponse;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.client.ClientHttpResponse;
-import org.springframework.util.StreamUtils;
 import org.springframework.util.StringUtils;
 
 import java.io.IOException;
@@ -92,7 +91,6 @@ final class SimpleClientHttpResponse extends AbstractClientHttpResponse {
 	public void close() {
 		if (this.responseStream != null) {
 			try {
-				StreamUtils.drain(this.responseStream);
 				this.responseStream.close();
 			}
 			catch (IOException ex) {
