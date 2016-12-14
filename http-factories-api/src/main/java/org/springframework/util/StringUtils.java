@@ -1124,7 +1124,7 @@ public abstract class StringUtils {
 	 * @return the delimited {@code String}
 	 */
 	public static String collectionToDelimitedString(Collection<?> coll, String delim, String prefix, String suffix) {
-		if (CollectionUtils.isEmpty(coll)) {
+		if (coll == null || coll.isEmpty()) {
 			return "";
 		}
 		StringBuilder sb = new StringBuilder();

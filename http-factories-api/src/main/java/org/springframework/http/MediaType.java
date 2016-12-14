@@ -16,7 +16,6 @@
 
 package org.springframework.http;
 
-import org.springframework.util.CollectionUtils;
 import org.springframework.util.InvalidMimeTypeException;
 import org.springframework.util.MimeType;
 import org.springframework.util.MimeTypeUtils;
@@ -461,7 +460,7 @@ public class MediaType extends MimeType implements Serializable {
 	 * @since 4.3.2
 	 */
 	public static List<MediaType> parseMediaTypes(List<String> mediaTypes) {
-		if (CollectionUtils.isEmpty(mediaTypes)) {
+		if (mediaTypes == null || mediaTypes.isEmpty()) {
 			return Collections.<MediaType>emptyList();
 		}
 		else if (mediaTypes.size() == 1) {
