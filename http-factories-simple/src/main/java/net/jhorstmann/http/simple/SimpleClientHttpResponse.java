@@ -19,7 +19,6 @@ package net.jhorstmann.http.simple;
 import net.jhorstmann.http.shared.AbstractClientHttpResponse;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.client.ClientHttpResponse;
-import org.springframework.util.StringUtils;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -64,13 +63,13 @@ final class SimpleClientHttpResponse extends AbstractClientHttpResponse {
 			this.headers = new HttpHeaders();
 			// Header field 0 is the status line for most HttpURLConnections, but not on GAE
 			String name = this.connection.getHeaderFieldKey(0);
-			if (StringUtils.hasLength(name)) {
+			if (name != null && name.length() > 0) {
 				this.headers.add(name, this.connection.getHeaderField(0));
 			}
 			int i = 1;
 			while (true) {
 				name = this.connection.getHeaderFieldKey(i);
-				if (!StringUtils.hasLength(name)) {
+				if (name == null || name.length() == 0) {
 					break;
 				}
 				this.headers.add(name, this.connection.getHeaderField(i));

@@ -35,7 +35,6 @@ import java.util.Map;
  * @author Chris Beams
  * @author Sam Brannen
  * @since 19.03.2004
- * @see StringUtils
  */
 public abstract class ObjectUtils {
 
@@ -117,9 +116,6 @@ public abstract class ObjectUtils {
 	 * @param obj the object to check
 	 * @return {@code true} if the object is {@code null} or <em>empty</em>
 	 * @since 4.2
-	 * @see ObjectUtils#isEmpty(Object[])
-	 * @see StringUtils#hasLength(CharSequence)
-	 * @see StringUtils#isEmpty(Object)
 	 */
 	@SuppressWarnings("rawtypes")
 	public static boolean isEmpty(Object obj) {

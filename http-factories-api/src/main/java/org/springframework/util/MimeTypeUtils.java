@@ -216,7 +216,7 @@ public abstract class MimeTypeUtils {
 	 * @throws InvalidMimeTypeException if the string cannot be parsed
 	 */
 	public static MimeType parseMimeType(String mimeType) {
-		if (!StringUtils.hasLength(mimeType)) {
+		if (mimeType == null || mimeType.length() == 0) {
 			throw new InvalidMimeTypeException(mimeType, "'mimeType' must not be empty");
 		}
 		String[] parts = StringUtils.tokenizeToStringArray(mimeType, ";");
@@ -274,7 +274,7 @@ public abstract class MimeTypeUtils {
 	 * @throws IllegalArgumentException if the string cannot be parsed
 	 */
 	public static List<MimeType> parseMimeTypes(String mimeTypes) {
-		if (!StringUtils.hasLength(mimeTypes)) {
+		if (mimeTypes == null || mimeTypes.length() == 0) {
 			return Collections.emptyList();
 		}
 		String[] tokens = StringUtils.tokenizeToStringArray(mimeTypes, ",");

@@ -619,7 +619,7 @@ public class HttpHeaders implements MultiValueMap<String, String>, Serializable 
 	 */
 	public Set<HttpMethod> getAllow() {
 		String value = getFirst(ALLOW);
-		if (!StringUtils.isEmpty(value)) {
+		if (value != null && value.length() > 0) {
 			String[] tokens = StringUtils.tokenizeToStringArray(value, ",");
 			List<HttpMethod> result = new ArrayList<HttpMethod>(tokens.length);
 			for (String token : tokens) {
@@ -749,7 +749,7 @@ public class HttpHeaders implements MultiValueMap<String, String>, Serializable 
 	 */
 	public MediaType getContentType() {
 		String value = getFirst(CONTENT_TYPE);
-		return (StringUtils.hasLength(value) ? MediaType.parseMediaType(value) : null);
+		return value != null && value.length() > 0 ? MediaType.parseMediaType(value) : null;
 	}
 
 	/**

@@ -26,6 +26,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
 import java.util.TreeSet;
 
 /**
@@ -439,11 +440,11 @@ public class MimeType implements Comparable<MimeType>, Serializable {
 			}
 
 			if (PARAM_CHARSET.equals(key)) {
-				if (!ObjectUtils.nullSafeEquals(getCharset(), other.getCharset())) {
+				if (!Objects.equals(getCharset(), other.getCharset())) {
 					return false;
 				}
 			}
-			else if (!ObjectUtils.nullSafeEquals(this.parameters.get(key), other.parameters.get(key))) {
+			else if (!Objects.equals(this.parameters.get(key), other.parameters.get(key))) {
 				return false;
 			}
 		}
