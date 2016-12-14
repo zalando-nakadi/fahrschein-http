@@ -21,7 +21,6 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.client.ClientHttpRequest;
 import org.springframework.http.client.ClientHttpResponse;
-import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
 import java.io.IOException;
@@ -91,8 +90,12 @@ final class SimpleBufferingClientHttpRequest extends AbstractBufferingClientHttp
 	}
 
 	private void copy(byte[] bufferedOutput, OutputStream out) throws IOException {
-		Assert.notNull(bufferedOutput, "No input byte array specified");
-		Assert.notNull(out, "No OutputStream specified");
+		if (bufferedOutput == null) {
+			throw new IllegalArgumentException("No input byte array specified");
+		}
+		if (out == null) {
+			throw new IllegalArgumentException("No OutputStream specified");
+		}
 		try {
 			out.write(bufferedOutput);
 		}

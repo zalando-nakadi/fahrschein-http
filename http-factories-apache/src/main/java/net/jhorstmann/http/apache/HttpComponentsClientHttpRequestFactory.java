@@ -34,7 +34,6 @@ import org.apache.http.protocol.HttpContext;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.client.ClientHttpRequest;
 import org.springframework.http.client.ClientHttpRequestFactory;
-import org.springframework.util.Assert;
 
 import java.io.Closeable;
 import java.io.IOException;
@@ -92,7 +91,9 @@ public class HttpComponentsClientHttpRequestFactory implements ClientHttpRequest
 	 * @param httpClient the HttpClient instance to use for this request factory
 	 */
 	public HttpComponentsClientHttpRequestFactory(HttpClient httpClient) {
-		Assert.notNull(httpClient, "HttpClient must not be null");
+		if (httpClient == null) {
+			throw new IllegalArgumentException("HttpClient must not be null");
+		}
 		this.httpClient = httpClient;
 	}
 
@@ -122,7 +123,9 @@ public class HttpComponentsClientHttpRequestFactory implements ClientHttpRequest
 	 * @see RequestConfig#getConnectTimeout()
 	 */
 	public void setConnectTimeout(int timeout) {
-		Assert.isTrue(timeout >= 0, "Timeout must be a non-negative value");
+		if (timeout < 0) {
+			throw new IllegalArgumentException("Timeout must be a non-negative value");
+		}
 		this.requestConfig = requestConfigBuilder().setConnectTimeout(timeout).build();
 		setLegacyConnectionTimeout(getHttpClient(), timeout);
 	}
@@ -170,7 +173,9 @@ public class HttpComponentsClientHttpRequestFactory implements ClientHttpRequest
 	 * @see RequestConfig#getSocketTimeout()
 	 */
 	public void setReadTimeout(int timeout) {
-		Assert.isTrue(timeout >= 0, "Timeout must be a non-negative value");
+		if (timeout < 0) {
+			throw new IllegalArgumentException("Timeout must be a non-negative value");
+		}
 		this.requestConfig = requestConfigBuilder().setSocketTimeout(timeout).build();
 		setLegacySocketTimeout(getHttpClient(), timeout);
 	}
@@ -202,7 +207,9 @@ public class HttpComponentsClientHttpRequestFactory implements ClientHttpRequest
 	@Override
 	public ClientHttpRequest createRequest(URI uri, HttpMethod httpMethod) throws IOException {
 		HttpClient client = getHttpClient();
-		Assert.state(client != null, "Synchronous execution requires an HttpClient to be set");
+		if (client == null) {
+			throw new IllegalStateException("Synchronous execution requires an HttpClient to be set");
+		}
 
 		HttpUriRequest httpRequest = createHttpUriRequest(httpMethod, uri);
 		postProcessHttpRequest(httpRequest);

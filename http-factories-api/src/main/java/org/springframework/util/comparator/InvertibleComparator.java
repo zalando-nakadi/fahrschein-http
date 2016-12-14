@@ -16,8 +16,6 @@
 
 package org.springframework.util.comparator;
 
-import org.springframework.util.Assert;
-
 import java.io.Serializable;
 import java.util.Comparator;
 
@@ -44,7 +42,9 @@ public class InvertibleComparator<T> implements Comparator<T>, Serializable {
 	 * @param comparator the comparator to decorate
 	 */
 	public InvertibleComparator(Comparator<T> comparator) {
-		Assert.notNull(comparator, "Comparator must not be null");
+		if (comparator == null) {
+			throw new IllegalArgumentException("Comparator must not be null");
+		}
 		this.comparator = comparator;
 	}
 
@@ -55,7 +55,9 @@ public class InvertibleComparator<T> implements Comparator<T>, Serializable {
 	 * @param ascending the sort order: ascending (true) or descending (false)
 	 */
 	public InvertibleComparator(Comparator<T> comparator, boolean ascending) {
-		Assert.notNull(comparator, "Comparator must not be null");
+		if (comparator == null) {
+			throw new IllegalArgumentException("Comparator must not be null");
+		}
 		this.comparator = comparator;
 		setAscending(ascending);
 	}

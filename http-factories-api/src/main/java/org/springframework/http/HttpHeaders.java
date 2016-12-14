@@ -16,7 +16,6 @@
 
 package org.springframework.http;
 
-import org.springframework.util.Assert;
 import org.springframework.util.LinkedCaseInsensitiveMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.util.StringUtils;
@@ -400,7 +399,9 @@ public class HttpHeaders implements MultiValueMap<String, String>, Serializable 
 	 * Private constructor that can create read-only {@code HttpHeader} instances.
 	 */
 	private HttpHeaders(Map<String, List<String>> headers, boolean readOnly) {
-		Assert.notNull(headers, "'headers' must not be null");
+		if (headers == null) {
+			throw new IllegalArgumentException("'headers' must not be null");
+		}
 		if (readOnly) {
 			Map<String, List<String>> map =
 					new LinkedCaseInsensitiveMap<List<String>>(headers.size(), Locale.ENGLISH);
@@ -691,7 +692,9 @@ public class HttpHeaders implements MultiValueMap<String, String>, Serializable 
 	 * @see <a href="https://tools.ietf.org/html/rfc7230#section-3.2.4">RFC 7230 Section 3.2.4</a>
 	 */
 	public void setContentDispositionFormData(String name, String filename, Charset charset) {
-		Assert.notNull(name, "'name' must not be null");
+		if (name == null) {
+			throw new IllegalArgumentException("'name' must not be null");
+		}
 		StringBuilder builder = new StringBuilder("form-data; name=\"");
 		builder.append(name).append('\"');
 		if (filename != null) {
@@ -730,8 +733,12 @@ public class HttpHeaders implements MultiValueMap<String, String>, Serializable 
 	 * as specified by the {@code Content-Type} header.
 	 */
 	public void setContentType(MediaType mediaType) {
-		Assert.isTrue(!mediaType.isWildcardType(), "'Content-Type' cannot contain wildcard type '*'");
-		Assert.isTrue(!mediaType.isWildcardSubtype(), "'Content-Type' cannot contain wildcard subtype '*'");
+		if (mediaType.isWildcardType()) {
+			throw new IllegalArgumentException("'Content-Type' cannot contain wildcard type '*'");
+		}
+		if (mediaType.isWildcardSubtype()) {
+			throw new IllegalArgumentException("'Content-Type' cannot contain wildcard subtype '*'");
+		}
 		set(CONTENT_TYPE, mediaType.toString());
 	}
 
@@ -771,9 +778,12 @@ public class HttpHeaders implements MultiValueMap<String, String>, Serializable 
 	 */
 	public void setETag(String eTag) {
 		if (eTag != null) {
-			Assert.isTrue(eTag.startsWith("\"") || eTag.startsWith("W/"),
-					"Invalid eTag, does not start with W/ or \"");
-			Assert.isTrue(eTag.endsWith("\""), "Invalid eTag, does not end with \"");
+			if (!(eTag.startsWith("\"") || eTag.startsWith("W/"))) {
+                throw new IllegalArgumentException("Invalid eTag, does not start with W/ or \"");
+            }
+			if (!eTag.endsWith("\"")) {
+                throw new IllegalArgumentException("Invalid eTag, does not end with \"");
+            }
 		}
 		set(ETAG, eTag);
 	}
@@ -1298,13 +1308,18 @@ public class HttpHeaders implements MultiValueMap<String, String>, Serializable 
 	 * @see <a href="https://tools.ietf.org/html/rfc5987">RFC 5987</a>
 	 */
 	static String encodeHeaderFieldParam(String input, Charset charset) {
-		Assert.notNull(input, "Input String should not be null");
-		Assert.notNull(charset, "Charset should not be null");
+		if (input == null) {
+			throw new IllegalArgumentException("Input String should not be null");
+		}
+		if (charset == null) {
+			throw new IllegalArgumentException("Charset should not be null");
+		}
 		if (charset.name().equals("US-ASCII")) {
 			return input;
 		}
-		Assert.isTrue(charset.name().equals("UTF-8") || charset.name().equals("ISO-8859-1"),
-				"Charset should be UTF-8 or ISO-8859-1");
+		if (!(charset.name().equals("UTF-8") || charset.name().equals("ISO-8859-1"))) {
+			throw new IllegalArgumentException("Charset should be UTF-8 or ISO-8859-1");
+		}
 		byte[] source = input.getBytes(charset);
 		int len = source.length;
 		StringBuilder sb = new StringBuilder(len << 1);

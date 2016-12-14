@@ -21,7 +21,6 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.client.ClientHttpRequest;
 import org.springframework.http.client.ClientHttpResponse;
-import org.springframework.util.Assert;
 
 import java.io.FilterOutputStream;
 import java.io.IOException;
@@ -86,7 +85,9 @@ final class SimpleStreamingClientHttpRequest extends AbstractClientHttpRequest {
 			this.connection.connect();
 			this.body = this.connection.getOutputStream();
 		}
-		Assert.notNull(this.body, "No OutputStream specified");
+		if (this.body == null) {
+			throw new IllegalArgumentException("No OutputStream specified");
+		}
 		return new NonClosingOutputStream(this.body);
 	}
 

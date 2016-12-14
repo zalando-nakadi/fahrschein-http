@@ -16,8 +16,6 @@
 
 package org.springframework.util.comparator;
 
-import org.springframework.util.Assert;
-
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -61,7 +59,9 @@ public class CompoundComparator<T> implements Comparator<T>, Serializable {
 	 */
 	@SuppressWarnings("unchecked")
 	public CompoundComparator(Comparator... comparators) {
-		Assert.notNull(comparators, "Comparators must not be null");
+		if (comparators == null) {
+			throw new IllegalArgumentException("Comparators must not be null");
+		}
 		this.comparators = new ArrayList<InvertibleComparator>(comparators.length);
 		for (Comparator comparator : comparators) {
 			this.addComparator(comparator);
@@ -168,8 +168,9 @@ public class CompoundComparator<T> implements Comparator<T>, Serializable {
 	@Override
 	@SuppressWarnings("unchecked")
 	public int compare(T o1, T o2) {
-		Assert.state(this.comparators.size() > 0,
-				"No sort definitions have been added to this CompoundComparator to compare");
+		if (this.comparators.isEmpty()) {
+			throw new IllegalStateException("No sort definitions have been added to this CompoundComparator to compare");
+		}
 		for (InvertibleComparator comparator : this.comparators) {
 			int result = comparator.compare(o1, o2);
 			if (result != 0) {

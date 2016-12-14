@@ -16,8 +16,6 @@
 
 package org.springframework.util.comparator;
 
-import org.springframework.util.Assert;
-
 import java.util.Comparator;
 
 /**
@@ -80,7 +78,9 @@ public class NullSafeComparator<T> implements Comparator<T> {
 	 * @param nullsLow whether to treat nulls lower or higher than non-null objects
 	 */
 	public NullSafeComparator(Comparator<T> comparator, boolean nullsLow) {
-		Assert.notNull(comparator, "The non-null comparator is required");
+		if (comparator == null) {
+			throw new IllegalArgumentException("The non-null comparator is required");
+		}
 		this.nonNullComparator = comparator;
 		this.nullsLow = nullsLow;
 	}

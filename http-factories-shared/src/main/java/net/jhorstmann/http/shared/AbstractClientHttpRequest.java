@@ -19,7 +19,6 @@ package net.jhorstmann.http.shared;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.client.ClientHttpRequest;
 import org.springframework.http.client.ClientHttpResponse;
-import org.springframework.util.Assert;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -62,7 +61,9 @@ public abstract class AbstractClientHttpRequest implements ClientHttpRequest {
 	 * @throws IllegalStateException if this request has been executed
 	 */
 	protected void assertNotExecuted() {
-		Assert.state(!this.executed, "ClientHttpRequest already executed");
+		if (this.executed) {
+			throw new IllegalStateException("ClientHttpRequest already executed");
+		}
 	}
 
 

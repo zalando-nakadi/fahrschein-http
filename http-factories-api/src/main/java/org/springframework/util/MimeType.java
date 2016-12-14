@@ -165,8 +165,12 @@ public class MimeType implements Comparable<MimeType>, Serializable {
 	 * @throws IllegalArgumentException if any of the parameters contains illegal characters
 	 */
 	public MimeType(String type, String subtype, Map<String, String> parameters) {
-		Assert.hasLength(type, "type must not be empty");
-		Assert.hasLength(subtype, "subtype must not be empty");
+		if (type == null || type.length() == 0) {
+			throw new IllegalArgumentException("type must not be empty");
+		}
+		if (subtype == null || subtype.length() == 0) {
+			throw new IllegalArgumentException("subtype must not be empty");
+		}
 		checkToken(type);
 		checkToken(subtype);
 		this.type = type.toLowerCase(Locale.ENGLISH);
@@ -202,8 +206,12 @@ public class MimeType implements Comparable<MimeType>, Serializable {
 	}
 
 	protected void checkParameters(String attribute, String value) {
-		Assert.hasLength(attribute, "parameter attribute must not be empty");
-		Assert.hasLength(value, "parameter value must not be empty");
+		if (attribute == null || attribute.length() == 0) {
+			throw new IllegalArgumentException("parameter attribute must not be empty");
+		}
+		if (value == null || value.length() == 0) {
+			throw new IllegalArgumentException("parameter value must not be empty");
+		}
 		checkToken(attribute);
 		if (PARAM_CHARSET.equals(attribute)) {
 			value = unquote(value);

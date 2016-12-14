@@ -19,7 +19,6 @@ package net.jhorstmann.http.simple;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.client.ClientHttpRequest;
 import org.springframework.http.client.ClientHttpRequestFactory;
-import org.springframework.util.Assert;
 
 import java.io.IOException;
 import java.net.HttpURLConnection;
@@ -144,7 +143,9 @@ public class SimpleClientHttpRequestFactory implements ClientHttpRequestFactory 
 	 */
 	protected HttpURLConnection openConnection(URL url, Proxy proxy) throws IOException {
 		URLConnection urlConnection = (proxy != null ? url.openConnection(proxy) : url.openConnection());
-		Assert.isInstanceOf(HttpURLConnection.class, urlConnection);
+		if (!(urlConnection instanceof HttpURLConnection)) {
+			throw new IllegalStateException("Connection should be an HttpURLConnection");
+		}
 		return (HttpURLConnection) urlConnection;
 	}
 

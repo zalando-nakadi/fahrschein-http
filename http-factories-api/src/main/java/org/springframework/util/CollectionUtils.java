@@ -352,7 +352,9 @@ public abstract class CollectionUtils {
 	 */
 	@SuppressWarnings("unchecked")
 	public static <K, V> MultiValueMap<K, V> unmodifiableMultiValueMap(MultiValueMap<? extends K, ? extends V> map) {
-		Assert.notNull(map, "'map' must not be null");
+		if (map == null) {
+			throw new IllegalArgumentException("'map' must not be null");
+		}
 		Map<K, List<V>> result = new LinkedHashMap<K, List<V>>(map.size());
 		for (Map.Entry<? extends K, ? extends List<? extends V>> entry : map.entrySet()) {
 			List<? extends V> values = Collections.unmodifiableList(entry.getValue());
@@ -400,7 +402,9 @@ public abstract class CollectionUtils {
 		private final Map<K, List<V>> map;
 
 		public MultiValueMapAdapter(Map<K, List<V>> map) {
-			Assert.notNull(map, "'map' must not be null");
+			if (map == null) {
+                throw new IllegalArgumentException("'map' must not be null");
+            }
 			this.map = map;
 		}
 

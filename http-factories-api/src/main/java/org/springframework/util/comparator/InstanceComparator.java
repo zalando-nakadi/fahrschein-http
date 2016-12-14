@@ -16,8 +16,6 @@
 
 package org.springframework.util.comparator;
 
-import org.springframework.util.Assert;
-
 import java.util.Comparator;
 
 /**
@@ -46,7 +44,9 @@ public class InstanceComparator<T> implements Comparator<T> {
 	 * objects. Classes earlier in the list will be given a higher priority.
 	 */
 	public InstanceComparator(Class<?>... instanceOrder) {
-		Assert.notNull(instanceOrder, "'instanceOrder' must not be null");
+		if (instanceOrder == null) {
+			throw new IllegalArgumentException("'instanceOrder' must not be null");
+		}
 		this.instanceOrder = instanceOrder;
 	}
 

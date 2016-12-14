@@ -16,6 +16,13 @@
 
 package org.springframework.http;
 
+import org.springframework.util.CollectionUtils;
+import org.springframework.util.InvalidMimeTypeException;
+import org.springframework.util.MimeType;
+import org.springframework.util.MimeTypeUtils;
+import org.springframework.util.StringUtils;
+import org.springframework.util.comparator.CompoundComparator;
+
 import java.io.Serializable;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
@@ -25,14 +32,6 @@ import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-
-import org.springframework.util.Assert;
-import org.springframework.util.CollectionUtils;
-import org.springframework.util.InvalidMimeTypeException;
-import org.springframework.util.MimeType;
-import org.springframework.util.MimeTypeUtils;
-import org.springframework.util.StringUtils;
-import org.springframework.util.comparator.CompoundComparator;
 
 /**
  * A sub-class of {@link MimeType} that adds support for quality parameters as defined
@@ -334,8 +333,9 @@ public class MediaType extends MimeType implements Serializable {
 		if (PARAM_QUALITY_FACTOR.equals(attribute)) {
 			value = unquote(value);
 			double d = Double.parseDouble(value);
-			Assert.isTrue(d >= 0D && d <= 1D,
-					"Invalid quality value \"" + value + "\": should be between 0.0 and 1.0");
+			if (!(d >= 0D && d <= 1D)) {
+                throw new IllegalArgumentException("Invalid quality value \"" + value + "\": should be between 0.0 and 1.0");
+            }
 		}
 	}
 
@@ -514,7 +514,9 @@ public class MediaType extends MimeType implements Serializable {
 	 * and Content, section 5.3.2</a>
 	 */
 	public static void sortBySpecificity(List<MediaType> mediaTypes) {
-		Assert.notNull(mediaTypes, "'mediaTypes' must not be null");
+		if (mediaTypes == null) {
+			throw new IllegalArgumentException("'mediaTypes' must not be null");
+		}
 		if (mediaTypes.size() > 1) {
 			Collections.sort(mediaTypes, SPECIFICITY_COMPARATOR);
 		}
@@ -541,7 +543,9 @@ public class MediaType extends MimeType implements Serializable {
 	 * @see #getQualityValue()
 	 */
 	public static void sortByQualityValue(List<MediaType> mediaTypes) {
-		Assert.notNull(mediaTypes, "'mediaTypes' must not be null");
+		if (mediaTypes == null) {
+			throw new IllegalArgumentException("'mediaTypes' must not be null");
+		}
 		if (mediaTypes.size() > 1) {
 			Collections.sort(mediaTypes, QUALITY_VALUE_COMPARATOR);
 		}
@@ -554,7 +558,9 @@ public class MediaType extends MimeType implements Serializable {
 	 * @see MediaType#sortByQualityValue(List)
 	 */
 	public static void sortBySpecificityAndQuality(List<MediaType> mediaTypes) {
-		Assert.notNull(mediaTypes, "'mediaTypes' must not be null");
+		if (mediaTypes == null) {
+			throw new IllegalArgumentException("'mediaTypes' must not be null");
+		}
 		if (mediaTypes.size() > 1) {
 			Collections.sort(mediaTypes, new CompoundComparator<MediaType>(
 					MediaType.SPECIFICITY_COMPARATOR, MediaType.QUALITY_VALUE_COMPARATOR));
