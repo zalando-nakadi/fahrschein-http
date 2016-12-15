@@ -17,6 +17,7 @@
             <groupId>net.jhorstmann</groupId>
             <artifactId>http-factories-api</artifactId>
             <version>${project.version}</version>
+            <scope>provided</scope>
         </dependency>
     </dependencies>
 </project>
