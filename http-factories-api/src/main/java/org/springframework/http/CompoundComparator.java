@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.util.comparator;
+package org.springframework.http;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -36,7 +36,7 @@ import java.util.List;
  * @since 1.2.2
  */
 @SuppressWarnings({ "serial", "rawtypes" })
-public class CompoundComparator<T> implements Comparator<T>, Serializable {
+class CompoundComparator<T> implements Comparator<T>, Serializable {
 
 	private final List<InvertibleComparator> comparators;
 
