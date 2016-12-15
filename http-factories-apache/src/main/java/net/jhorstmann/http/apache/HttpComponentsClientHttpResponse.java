@@ -20,7 +20,6 @@ import net.jhorstmann.http.shared.AbstractClientHttpResponse;
 import org.apache.http.Header;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
-import org.apache.http.util.EntityUtils;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.client.ClientHttpResponse;
 
@@ -82,20 +81,13 @@ final class HttpComponentsClientHttpResponse extends AbstractClientHttpResponse 
 	@Override
 	public void close() {
         // Release underlying connection back to the connection manager
-        try {
-            try {
-                // Attempt to keep connection alive by consuming its remaining content
-                EntityUtils.consume(this.httpResponse.getEntity());
-            }
-			finally {
-				if (this.httpResponse instanceof Closeable) {
-					((Closeable) this.httpResponse).close();
-				}
-            }
-        }
-        catch (IOException ex) {
-			// Ignore exception on close...
-        }
+		if (this.httpResponse instanceof Closeable) {
+			try {
+				((Closeable) this.httpResponse).close();
+			} catch (IOException e) {
+				// ignore exception on close
+			}
+		}
 	}
 
 }
