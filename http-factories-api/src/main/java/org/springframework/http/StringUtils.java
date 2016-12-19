@@ -14,19 +14,12 @@
  * limitations under the License.
  */
 
-package org.springframework.util;
+package org.springframework.http;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
-import java.util.Collections;
-import java.util.Enumeration;
 import java.util.Iterator;
-import java.util.LinkedHashSet;
-import java.util.LinkedList;
 import java.util.List;
-import java.util.Properties;
-import java.util.Set;
 import java.util.StringTokenizer;
 
 /**
@@ -51,7 +44,7 @@ import java.util.StringTokenizer;
  * @author Brian Clozel
  * @since 16 April 2001
  */
-public abstract class StringUtils {
+abstract class StringUtils {
 
 	//---------------------------------------------------------------------
 	// Convenience methods for working with String arrays
@@ -64,7 +57,7 @@ public abstract class StringUtils {
 	 * @return the {@code String} array ({@code null} if the supplied
 	 * {@code Collection} was {@code null})
 	 */
-	public static String[] toStringArray(Collection<String> collection) {
+	private static String[] toStringArray(Collection<String> collection) {
 		if (collection == null) {
 			return null;
 		}
@@ -77,8 +70,7 @@ public abstract class StringUtils {
 	 * <p>Trims tokens and omits empty tokens.
 	 * <p>The given {@code delimiters} string can consist of any number of
 	 * delimiter characters. Each of those characters can be used to separate
-	 * tokens. A delimiter is always a single character; for multi-character
-	 * delimiters, consider using {@link #delimitedListToStringArray}.
+	 * tokens. A delimiter is always a single character.
 	 * @param str the {@code String} to tokenize
 	 * @param delimiters the delimiter characters, assembled as a {@code String}
 	 * (each of the characters is individually considered as a delimiter)
@@ -95,8 +87,7 @@ public abstract class StringUtils {
 	 * {@link StringTokenizer}.
 	 * <p>The given {@code delimiters} string can consist of any number of
 	 * delimiter characters. Each of those characters can be used to separate
-	 * tokens. A delimiter is always a single character; for multi-character
-	 * delimiters, consider using {@link #delimitedListToStringArray}.
+	 * tokens. A delimiter is always a single character.
 	 * @param str the {@code String} to tokenize
 	 * @param delimiters the delimiter characters, assembled as a {@code String}
 	 * (each of the characters is individually considered as a delimiter)
@@ -109,7 +100,7 @@ public abstract class StringUtils {
 	 * @see StringTokenizer
 	 * @see String#trim()
 	 */
-	public static String[] tokenizeToStringArray(
+	private static String[] tokenizeToStringArray(
 			String str, String delimiters, boolean trimTokens, boolean ignoreEmptyTokens) {
 
 		if (str == null) {
@@ -138,7 +129,7 @@ public abstract class StringUtils {
 	 * @param suffix the {@code String} to end each element with
 	 * @return the delimited {@code String}
 	 */
-	public static String collectionToDelimitedString(Collection<?> coll, String delim, String prefix, String suffix) {
+	private static String collectionToDelimitedString(Collection<?> coll, String delim, String prefix, String suffix) {
 		if (coll == null || coll.isEmpty()) {
 			return "";
 		}
@@ -160,7 +151,7 @@ public abstract class StringUtils {
 	 * @param delim the delimiter to use (typically a ",")
 	 * @return the delimited {@code String}
 	 */
-	public static String collectionToDelimitedString(Collection<?> coll, String delim) {
+	private static String collectionToDelimitedString(Collection<?> coll, String delim) {
 		return collectionToDelimitedString(coll, delim, "", "");
 	}
 

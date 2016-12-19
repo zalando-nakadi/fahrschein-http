@@ -16,9 +16,7 @@
 
 package org.springframework.http;
 
-import org.springframework.util.LinkedCaseInsensitiveMap;
 import org.springframework.util.MultiValueMap;
-import org.springframework.util.StringUtils;
 
 import java.io.Serializable;
 import java.net.URI;

@@ -21,13 +21,14 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.client.ClientHttpRequest;
 import org.springframework.http.client.ClientHttpResponse;
-import org.springframework.util.StringUtils;
 
 import java.io.IOException;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.Collection;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -108,6 +109,20 @@ final class SimpleBufferingClientHttpRequest extends AbstractBufferingClientHttp
 		}
 	}
 
+	private static String collectionToDelimitedString(Collection<?> coll, String delim) {
+		if (coll == null || coll.isEmpty()) {
+			return "";
+		}
+		StringBuilder sb = new StringBuilder();
+		Iterator<?> it = coll.iterator();
+		while (it.hasNext()) {
+			sb.append(it.next());
+			if (it.hasNext()) {
+				sb.append(delim);
+			}
+		}
+		return sb.toString();
+	}
 
 	/**
 	 * Add the given headers to the given HTTP connection.
@@ -118,7 +133,7 @@ final class SimpleBufferingClientHttpRequest extends AbstractBufferingClientHttp
 		for (Map.Entry<String, List<String>> entry : headers.entrySet()) {
 			String headerName = entry.getKey();
 			if (HttpHeaders.COOKIE.equalsIgnoreCase(headerName)) {  // RFC 6265
-				String headerValue = StringUtils.collectionToDelimitedString(entry.getValue(), "; ");
+				String headerValue = collectionToDelimitedString(entry.getValue(), "; ");
 				connection.setRequestProperty(headerName, headerValue);
 			}
 			else {

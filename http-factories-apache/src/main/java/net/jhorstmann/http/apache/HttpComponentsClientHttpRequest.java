@@ -29,10 +29,11 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.client.ClientHttpRequest;
 import org.springframework.http.client.ClientHttpResponse;
-import org.springframework.util.StringUtils;
 
 import java.io.IOException;
 import java.net.URI;
+import java.util.Collection;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -93,6 +94,21 @@ final class HttpComponentsClientHttpRequest extends AbstractBufferingClientHttpR
 	}
 
 
+	private static String collectionToDelimitedString(Collection<?> coll, String delim) {
+		if (coll == null || coll.isEmpty()) {
+			return "";
+		}
+		StringBuilder sb = new StringBuilder();
+		Iterator<?> it = coll.iterator();
+		while (it.hasNext()) {
+			sb.append(it.next());
+			if (it.hasNext()) {
+				sb.append(delim);
+			}
+		}
+		return sb.toString();
+	}
+
 	/**
 	 * Add the given headers to the given HTTP request.
 	 * @param httpRequest the request to add the headers to
@@ -102,7 +118,7 @@ final class HttpComponentsClientHttpRequest extends AbstractBufferingClientHttpR
 		for (Map.Entry<String, List<String>> entry : headers.entrySet()) {
 			String headerName = entry.getKey();
 			if (HttpHeaders.COOKIE.equalsIgnoreCase(headerName)) {  // RFC 6265
-				String headerValue = StringUtils.collectionToDelimitedString(entry.getValue(), "; ");
+				String headerValue = collectionToDelimitedString(entry.getValue(), "; ");
 				httpRequest.addHeader(headerName, headerValue);
 			}
 			else if (!HTTP.CONTENT_LEN.equalsIgnoreCase(headerName) &&
