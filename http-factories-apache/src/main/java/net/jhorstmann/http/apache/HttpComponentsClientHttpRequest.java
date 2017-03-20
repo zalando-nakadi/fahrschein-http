@@ -47,25 +47,25 @@ import java.util.Map;
  * @author Oleg Kalnichevski
  * @author Arjen Poutsma
  * @author Juergen Hoeller
- * @since 3.1
+ * @author Joern Horstmann
  * @see HttpComponentsClientHttpRequestFactory#createRequest(URI, HttpMethod)
  */
 final class HttpComponentsClientHttpRequest implements ClientHttpRequest {
 
 	private final HttpClient httpClient;
-
 	private final HttpUriRequest httpRequest;
 
 	private final HttpContext httpContext;
-	private final HttpHeaders headers = new HttpHeaders();
-	private ByteArrayOutputStream bufferedOutput = new ByteArrayOutputStream(1024);
-	private boolean executed = false;
+	private final HttpHeaders headers;
+	private ByteArrayOutputStream bufferedOutput;
+	private boolean executed;
 
 
 	HttpComponentsClientHttpRequest(HttpClient client, HttpUriRequest request, HttpContext context) {
 		this.httpClient = client;
 		this.httpRequest = request;
 		this.httpContext = context;
+		this.headers = new HttpHeaders();
 	}
 
 
@@ -78,20 +78,6 @@ final class HttpComponentsClientHttpRequest implements ClientHttpRequest {
 	public URI getURI() {
 		return this.httpRequest.getURI();
 	}
-
-
-	protected ClientHttpResponse executeInternal(HttpHeaders headers, byte[] bufferedOutput) throws IOException {
-		addHeaders(this.httpRequest, headers);
-
-		if (this.httpRequest instanceof HttpEntityEnclosingRequest) {
-			HttpEntityEnclosingRequest entityEnclosingRequest = (HttpEntityEnclosingRequest) this.httpRequest;
-			HttpEntity requestEntity = new ByteArrayEntity(bufferedOutput);
-			entityEnclosingRequest.setEntity(requestEntity);
-		}
-		HttpResponse httpResponse = this.httpClient.execute(this.httpRequest, this.httpContext);
-		return new HttpComponentsClientHttpResponse(httpResponse);
-	}
-
 
 	private static String collectionToDelimitedString(Collection<?> coll, String delim) {
 		if (coll == null || coll.isEmpty()) {
@@ -108,33 +94,35 @@ final class HttpComponentsClientHttpRequest implements ClientHttpRequest {
 		return sb.toString();
 	}
 
-	/**
-	 * Add the given headers to the given HTTP request.
-	 * @param httpRequest the request to add the headers to
-	 * @param headers the headers to add
-	 */
-	private static void addHeaders(HttpUriRequest httpRequest, HttpHeaders headers) {
+	private ClientHttpResponse executeInternal(HttpHeaders headers) throws IOException {
+		final byte[] bytes = this.bufferedOutput != null ? this.bufferedOutput.toByteArray() : new byte[0];
+
+		if (headers.getContentLength() < 0) {
+			headers.setContentLength(bytes.length);
+		}
+
 		for (Map.Entry<String, List<String>> entry : headers.entrySet()) {
 			String headerName = entry.getKey();
 			if (HttpHeaders.COOKIE.equalsIgnoreCase(headerName)) {  // RFC 6265
 				String headerValue = collectionToDelimitedString(entry.getValue(), "; ");
-				httpRequest.addHeader(headerName, headerValue);
+				this.httpRequest.addHeader(headerName, headerValue);
 			}
 			else if (!HTTP.CONTENT_LEN.equalsIgnoreCase(headerName) &&
 					!HTTP.TRANSFER_ENCODING.equalsIgnoreCase(headerName)) {
 				for (String headerValue : entry.getValue()) {
-					httpRequest.addHeader(headerName, headerValue);
+					this.httpRequest.addHeader(headerName, headerValue);
 				}
 			}
 		}
-	}
 
-	private ClientHttpResponse executeInternal(HttpHeaders headers) throws IOException {
-		byte[] bytes = this.bufferedOutput.toByteArray();
-		if (headers.getContentLength() < 0) {
-			headers.setContentLength(bytes.length);
+		if (this.httpRequest instanceof HttpEntityEnclosingRequest) {
+			HttpEntityEnclosingRequest entityEnclosingRequest = (HttpEntityEnclosingRequest) this.httpRequest;
+			HttpEntity requestEntity = new ByteArrayEntity(bytes);
+			entityEnclosingRequest.setEntity(requestEntity);
 		}
-		ClientHttpResponse result = executeInternal(headers, bytes);
+
+		final HttpResponse httpResponse = this.httpClient.execute(this.httpRequest, this.httpContext);
+		final ClientHttpResponse result = new HttpComponentsClientHttpResponse(httpResponse);
 		this.bufferedOutput = null;
 		return result;
 	}
@@ -147,13 +135,16 @@ final class HttpComponentsClientHttpRequest implements ClientHttpRequest {
 	@Override
 	public final OutputStream getBody() throws IOException {
 		assertNotExecuted();
+		if (this.bufferedOutput == null) {
+			this.bufferedOutput =  new ByteArrayOutputStream(1024);
+		}
 		return this.bufferedOutput;
 	}
 
 	@Override
 	public final ClientHttpResponse execute() throws IOException {
 		assertNotExecuted();
-		ClientHttpResponse result = executeInternal(this.headers);
+		final ClientHttpResponse result = executeInternal(this.headers);
 		this.executed = true;
 		return result;
 	}

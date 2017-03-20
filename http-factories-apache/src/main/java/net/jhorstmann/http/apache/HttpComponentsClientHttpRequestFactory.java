@@ -53,25 +53,11 @@ import java.net.URI;
  * @author Arjen Poutsma
  * @author Stephane Nicoll
  * @author Juergen Hoeller
- * @since 3.1
+ * @author Joern Horstmann
  */
 public class HttpComponentsClientHttpRequestFactory implements ClientHttpRequestFactory {
 
-	private static Class<?> abstractHttpClientClass;
-
-	static {
-		try {
-			// Looking for AbstractHttpClient class (deprecated as of HttpComponents 4.3)
-			abstractHttpClientClass = HttpComponentsClientHttpRequestFactory.class.getClassLoader().loadClass("org.apache.http.impl.client.AbstractHttpClient");
-		}
-		catch (ClassNotFoundException ex) {
-			// Probably removed from HttpComponents in the meantime...
-		}
-	}
-
-
-	private HttpClient httpClient;
-
+	private final HttpClient httpClient;
 	private RequestConfig requestConfig;
 
 	/**
@@ -96,22 +82,6 @@ public class HttpComponentsClientHttpRequestFactory implements ClientHttpRequest
 
 
 	/**
-	 * Set the {@code HttpClient} used for
-	 * {@linkplain #createRequest(URI, HttpMethod) synchronous execution}.
-	 */
-	public void setHttpClient(HttpClient httpClient) {
-		this.httpClient = httpClient;
-	}
-
-	/**
-	 * Return the {@code HttpClient} used for
-	 * {@linkplain #createRequest(URI, HttpMethod) synchronous execution}.
-	 */
-	public HttpClient getHttpClient() {
-		return this.httpClient;
-	}
-
-	/**
 	 * Set the connection timeout for the underlying HttpClient.
 	 * A timeout value of 0 specifies an infinite timeout.
 	 * <p>Additional properties can be configured by specifying a
@@ -124,28 +94,6 @@ public class HttpComponentsClientHttpRequestFactory implements ClientHttpRequest
 			throw new IllegalArgumentException("Timeout must be a non-negative value");
 		}
 		this.requestConfig = requestConfigBuilder().setConnectTimeout(timeout).build();
-		setLegacyConnectionTimeout(getHttpClient(), timeout);
-	}
-
-	/**
-	 * Apply the specified connection timeout to deprecated {@link HttpClient}
-	 * implementations.
-	 * <p>As of HttpClient 4.3, default parameters have to be exposed through a
-	 * {@link RequestConfig} instance instead of setting the parameters on the
-	 * client. Unfortunately, this behavior is not backward-compatible and older
-	 * {@link HttpClient} implementations will ignore the {@link RequestConfig}
-	 * object set in the context.
-	 * <p>If the specified client is an older implementation, we set the custom
-	 * connection timeout through the deprecated API. Otherwise, we just return
-	 * as it is set through {@link RequestConfig} with newer clients.
-	 * @param client the client to configure
-	 * @param timeout the custom connection timeout
-	 */
-	@SuppressWarnings("deprecation")
-	private void setLegacyConnectionTimeout(HttpClient client, int timeout) {
-		if (abstractHttpClientClass != null && abstractHttpClientClass.isInstance(client)) {
-			client.getParams().setIntParameter(org.apache.http.params.CoreConnectionPNames.CONNECTION_TIMEOUT, timeout);
-		}
 	}
 
 	/**
@@ -174,31 +122,10 @@ public class HttpComponentsClientHttpRequestFactory implements ClientHttpRequest
 			throw new IllegalArgumentException("Timeout must be a non-negative value");
 		}
 		this.requestConfig = requestConfigBuilder().setSocketTimeout(timeout).build();
-		setLegacySocketTimeout(getHttpClient(), timeout);
 	}
-
-	/**
-	 * Apply the specified socket timeout to deprecated {@link HttpClient}
-	 * implementations. See {@link #setLegacyConnectionTimeout}.
-	 * @param client the client to configure
-	 * @param timeout the custom socket timeout
-	 * @see #setLegacyConnectionTimeout
-	 */
-	@SuppressWarnings("deprecation")
-	private void setLegacySocketTimeout(HttpClient client, int timeout) {
-		if (abstractHttpClientClass != null && abstractHttpClientClass.isInstance(client)) {
-			client.getParams().setIntParameter(org.apache.http.params.CoreConnectionPNames.SO_TIMEOUT, timeout);
-		}
-	}
-
-
 
 	@Override
 	public ClientHttpRequest createRequest(URI uri, HttpMethod httpMethod) throws IOException {
-		HttpClient client = getHttpClient();
-		if (client == null) {
-			throw new IllegalStateException("Synchronous execution requires an HttpClient to be set");
-		}
 
 		HttpUriRequest httpRequest = createHttpUriRequest(httpMethod, uri);
 		HttpContext context = HttpClientContext.create();
@@ -211,14 +138,14 @@ public class HttpComponentsClientHttpRequestFactory implements ClientHttpRequest
 				config = ((Configurable) httpRequest).getConfig();
 			}
 			if (config == null) {
-				config = createRequestConfig(client);
+				config = createRequestConfig(httpClient);
 			}
 			if (config != null) {
 				context.setAttribute(HttpClientContext.REQUEST_CONFIG, config);
 			}
 		}
 
-		return new HttpComponentsClientHttpRequest(client, httpRequest, context);
+		return new HttpComponentsClientHttpRequest(httpClient, httpRequest, context);
 	}
 
 
@@ -284,7 +211,7 @@ public class HttpComponentsClientHttpRequestFactory implements ClientHttpRequest
 	 * @param uri the URI
 	 * @return the Commons HttpMethodBase object
 	 */
-	protected HttpUriRequest createHttpUriRequest(HttpMethod httpMethod, URI uri) {
+	private static HttpUriRequest createHttpUriRequest(HttpMethod httpMethod, URI uri) {
 		switch (httpMethod) {
 			case GET:
 				return new HttpGet(uri);

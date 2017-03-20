@@ -36,20 +36,17 @@ import java.io.InputStream;
  *
  * @author Oleg Kalnichevski
  * @author Arjen Poutsma
- * @since 3.1
+ * @author Joern Horstmann
  * @see HttpComponentsClientHttpRequest#execute()
  */
 final class HttpComponentsClientHttpResponse implements ClientHttpResponse {
 
 	private final HttpResponse httpResponse;
-
 	private HttpHeaders headers;
-
 
 	HttpComponentsClientHttpResponse(HttpResponse httpResponse) {
 		this.httpResponse = httpResponse;
 	}
-
 
 	@Override
 	public int getRawStatusCode() throws IOException {

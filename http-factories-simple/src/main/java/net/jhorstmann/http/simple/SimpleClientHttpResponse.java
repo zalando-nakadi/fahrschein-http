@@ -30,7 +30,7 @@ import java.net.HttpURLConnection;
  *
  * @author Arjen Poutsma
  * @author Brian Clozel
- * @since 3.0
+ * @author Joern Horstmann
  */
 final class SimpleClientHttpResponse implements ClientHttpResponse {
 

@@ -38,33 +38,31 @@ import java.util.Map;
  *
  * @author Arjen Poutsma
  * @author Juergen Hoeller
- * @since 3.0
+ * @author Joern Horstmann
  * @see SimpleClientHttpRequestFactory#createRequest(java.net.URI, HttpMethod)
  */
 final class SimpleBufferingClientHttpRequest implements ClientHttpRequest {
 
 	private final HttpURLConnection connection;
-
-	private final HttpHeaders headers = new HttpHeaders();
-	private ByteArrayOutputStream bufferedOutput = new ByteArrayOutputStream(1024);
-	private boolean executed = false;
-
+	private final HttpHeaders headers;
+	private ByteArrayOutputStream bufferedOutput;
+	private boolean executed;
 
 	SimpleBufferingClientHttpRequest(HttpURLConnection connection) {
 		this.connection = connection;
+		this.headers = new HttpHeaders();
 	}
 
 	@Override
 	public HttpMethod getMethod() {
-		return HttpMethod.resolve(this.connection.getRequestMethod());
+		return Enum.valueOf(HttpMethod.class, this.connection.getRequestMethod());
 	}
 
 	@Override
 	public URI getURI() {
 		try {
 			return this.connection.getURL().toURI();
-		}
-		catch (URISyntaxException ex) {
+		} catch (URISyntaxException ex) {
 			throw new IllegalStateException("Could not get HttpURLConnection URI: " + ex.getMessage(), ex);
 		}
 	}
@@ -84,33 +82,25 @@ final class SimpleBufferingClientHttpRequest implements ClientHttpRequest {
 		return sb.toString();
 	}
 
-	/**
-	 * Add the given headers to the given HTTP connection.
-	 * @param connection the connection to add the headers to
-	 * @param headers the headers to add
-	 */
-	private static void addHeaders(HttpURLConnection connection, HttpHeaders headers) {
+	private ClientHttpResponse executeInternal() throws IOException {
+		final int size = this.bufferedOutput != null ? this.bufferedOutput.size() : 0;
+		if (this.headers.getContentLength() < 0) {
+			this.headers.setContentLength(size);
+		}
+
 		for (Map.Entry<String, List<String>> entry : headers.entrySet()) {
-			String headerName = entry.getKey();
+			final String headerName = entry.getKey();
 			if (HttpHeaders.COOKIE.equalsIgnoreCase(headerName)) {  // RFC 6265
-				String headerValue = collectionToDelimitedString(entry.getValue(), "; ");
+				final String headerValue = collectionToDelimitedString(entry.getValue(), "; ");
 				connection.setRequestProperty(headerName, headerValue);
-			}
-			else {
+			} else {
 				for (String headerValue : entry.getValue()) {
-					String actualHeaderValue = headerValue != null ? headerValue : "";
+					final String actualHeaderValue = headerValue != null ? headerValue : "";
 					connection.addRequestProperty(headerName, actualHeaderValue);
 				}
 			}
 		}
-	}
 
-	protected ClientHttpResponse executeInternal(HttpHeaders headers) throws IOException {
-		final int size = this.bufferedOutput.size();
-		if (headers.getContentLength() < 0) {
-			headers.setContentLength(size);
-		}
-		addHeaders(this.connection, headers);
 		// JDK <1.8 doesn't support getOutputStream with HTTP DELETE
 		if (HttpMethod.DELETE == getMethod() && size > 0) {
 			this.connection.setDoOutput(false);
@@ -118,15 +108,17 @@ final class SimpleBufferingClientHttpRequest implements ClientHttpRequest {
 		if (this.connection.getDoOutput()) {
 			this.connection.setFixedLengthStreamingMode(size);
 		}
+
 		this.connection.connect();
-		if (this.connection.getDoOutput()) {
+
+		if (this.connection.getDoOutput() && this.bufferedOutput != null) {
 			this.bufferedOutput.writeTo(this.connection.getOutputStream());
-		}
-		else {
+		} else {
 			// Immediately trigger the request in a no-output scenario as well
 			this.connection.getResponseCode();
 		}
-		ClientHttpResponse result = new SimpleClientHttpResponse(this.connection);
+
+		final ClientHttpResponse result = new SimpleClientHttpResponse(this.connection);
 		this.bufferedOutput = null;
 		return result;
 	}
@@ -139,13 +131,16 @@ final class SimpleBufferingClientHttpRequest implements ClientHttpRequest {
 	@Override
 	public final OutputStream getBody() throws IOException {
 		assertNotExecuted();
+		if (this.bufferedOutput == null) {
+			this.bufferedOutput = new ByteArrayOutputStream(1024);
+		}
 		return this.bufferedOutput;
 	}
 
 	@Override
 	public final ClientHttpResponse execute() throws IOException {
 		assertNotExecuted();
-		ClientHttpResponse result = executeInternal(this.headers);
+		final ClientHttpResponse result = executeInternal();
 		this.executed = true;
 		return result;
 	}
