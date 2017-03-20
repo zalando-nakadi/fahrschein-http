@@ -74,9 +74,6 @@ public class HttpComponentsClientHttpRequestFactory implements ClientHttpRequest
 
 	private RequestConfig requestConfig;
 
-	private boolean bufferRequestBody = true;
-
-
 	/**
 	 * Create a new instance of the {@code HttpComponentsClientHttpRequestFactory}
 	 * with a default {@link HttpClient}.
@@ -194,14 +191,6 @@ public class HttpComponentsClientHttpRequestFactory implements ClientHttpRequest
 		}
 	}
 
-	/**
-	 * Indicates whether this request factory should buffer the request body internally.
-	 * <p>Default is {@code true}. When sending large amounts of data via POST or PUT, it is
-	 * recommended to change this property to {@code false}, so as not to run out of memory.
-	 */
-	public void setBufferRequestBody(boolean bufferRequestBody) {
-		this.bufferRequestBody = bufferRequestBody;
-	}
 
 
 	@Override
@@ -212,11 +201,7 @@ public class HttpComponentsClientHttpRequestFactory implements ClientHttpRequest
 		}
 
 		HttpUriRequest httpRequest = createHttpUriRequest(httpMethod, uri);
-		postProcessHttpRequest(httpRequest);
-		HttpContext context = createHttpContext(httpMethod, uri);
-		if (context == null) {
-			context = HttpClientContext.create();
-		}
+		HttpContext context = HttpClientContext.create();
 
 		// Request configuration not set in the context
 		if (context.getAttribute(HttpClientContext.REQUEST_CONFIG) == null) {
@@ -233,12 +218,7 @@ public class HttpComponentsClientHttpRequestFactory implements ClientHttpRequest
 			}
 		}
 
-		if (this.bufferRequestBody) {
-			return new HttpComponentsClientHttpRequest(client, httpRequest, context);
-		}
-		else {
-			return new HttpComponentsStreamingClientHttpRequest(client, httpRequest, context);
-		}
+		return new HttpComponentsClientHttpRequest(client, httpRequest, context);
 	}
 
 
@@ -325,26 +305,6 @@ public class HttpComponentsClientHttpRequestFactory implements ClientHttpRequest
 			default:
 				throw new IllegalArgumentException("Invalid HTTP method: " + httpMethod);
 		}
-	}
-
-	/**
-	 * Template method that allows for manipulating the {@link HttpUriRequest} before it is
-	 * returned as part of a {@link HttpComponentsClientHttpRequest}.
-	 * <p>The default implementation is empty.
-	 * @param request the request to process
-	 */
-	protected void postProcessHttpRequest(HttpUriRequest request) {
-	}
-
-	/**
-	 * Template methods that creates a {@link HttpContext} for the given HTTP method and URI.
-	 * <p>The default implementation returns {@code null}.
-	 * @param httpMethod the HTTP method
-	 * @param uri the URI
-	 * @return the http context
-	 */
-	protected HttpContext createHttpContext(HttpMethod httpMethod, URI uri) {
-		return null;
 	}
 
 

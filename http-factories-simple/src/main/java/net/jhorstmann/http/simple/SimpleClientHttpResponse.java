@@ -26,8 +26,7 @@ import java.net.HttpURLConnection;
 
 /**
  * {@link ClientHttpResponse} implementation that uses standard JDK facilities.
- * Obtained via {@link SimpleBufferingClientHttpRequest#execute()} and
- * {@link SimpleStreamingClientHttpRequest#execute()}.
+ * Obtained via {@link SimpleBufferingClientHttpRequest#execute()}.
  *
  * @author Arjen Poutsma
  * @author Brian Clozel
@@ -36,16 +35,12 @@ import java.net.HttpURLConnection;
 final class SimpleClientHttpResponse implements ClientHttpResponse {
 
 	private final HttpURLConnection connection;
-
 	private HttpHeaders headers;
-
 	private InputStream responseStream;
-
 
 	SimpleClientHttpResponse(HttpURLConnection connection) {
 		this.connection = connection;
 	}
-
 
 	@Override
 	public int getRawStatusCode() throws IOException {

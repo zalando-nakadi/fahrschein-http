@@ -37,20 +37,9 @@ import java.net.URLConnection;
  */
 public class SimpleClientHttpRequestFactory implements ClientHttpRequestFactory {
 
-	private static final int DEFAULT_CHUNK_SIZE = 4096;
-
-
 	private Proxy proxy;
-
-	private boolean bufferRequestBody = true;
-
-	private int chunkSize = DEFAULT_CHUNK_SIZE;
-
 	private int connectTimeout = -1;
-
 	private int readTimeout = -1;
-
-	private boolean outputStreaming = true;
 
 
 	/**
@@ -58,32 +47,6 @@ public class SimpleClientHttpRequestFactory implements ClientHttpRequestFactory 
 	 */
 	public void setProxy(Proxy proxy) {
 		this.proxy = proxy;
-	}
-
-	/**
-	 * Indicates whether this request factory should buffer the {@linkplain ClientHttpRequest#getBody() request body}
-	 * internally.
-	 * <p>Default is {@code true}. When sending large amounts of data via POST or PUT, it is recommended
-	 * to change this property to {@code false}, so as not to run out of memory. This will result in a
-	 * {@link ClientHttpRequest} that either streams directly to the underlying {@link HttpURLConnection}
-	 * (if the {@link org.springframework.http.HttpHeaders#getContentLength() Content-Length} is known in advance),
-	 * or that will use "Chunked transfer encoding" (if the {@code Content-Length} is not known in advance).
-	 * @see #setChunkSize(int)
-	 * @see HttpURLConnection#setFixedLengthStreamingMode(int)
-	 */
-	public void setBufferRequestBody(boolean bufferRequestBody) {
-		this.bufferRequestBody = bufferRequestBody;
-	}
-
-	/**
-	 * Sets the number of bytes to write in each chunk when not buffering request bodies locally.
-	 * <p>Note that this parameter is only used when {@link #setBufferRequestBody(boolean) bufferRequestBody} is set
-	 * to {@code false}, and the {@link org.springframework.http.HttpHeaders#getContentLength() Content-Length}
-	 * is not known in advance.
-	 * @see #setBufferRequestBody(boolean)
-	 */
-	public void setChunkSize(int chunkSize) {
-		this.chunkSize = chunkSize;
 	}
 
 	/**
@@ -106,30 +69,12 @@ public class SimpleClientHttpRequestFactory implements ClientHttpRequestFactory 
 		this.readTimeout = readTimeout;
 	}
 
-	/**
-	 * Set if the underlying URLConnection can be set to 'output streaming' mode.
-	 * Default is {@code true}.
-	 * <p>When output streaming is enabled, authentication and redirection cannot be handled automatically.
-	 * If output streaming is disabled, the {@link HttpURLConnection#setFixedLengthStreamingMode} and
-	 * {@link HttpURLConnection#setChunkedStreamingMode} methods of the underlying connection will never
-	 * be called.
-	 * @param outputStreaming if output streaming is enabled
-	 */
-	public void setOutputStreaming(boolean outputStreaming) {
-		this.outputStreaming = outputStreaming;
-	}
-
 	@Override
 	public ClientHttpRequest createRequest(URI uri, HttpMethod httpMethod) throws IOException {
 		HttpURLConnection connection = openConnection(uri.toURL(), this.proxy);
 		prepareConnection(connection, httpMethod.name());
 
-		if (this.bufferRequestBody) {
-			return new SimpleBufferingClientHttpRequest(connection, this.outputStreaming);
-		}
-		else {
-			return new SimpleStreamingClientHttpRequest(connection, this.chunkSize, this.outputStreaming);
-		}
+		return new SimpleBufferingClientHttpRequest(connection);
 	}
 
 	/**

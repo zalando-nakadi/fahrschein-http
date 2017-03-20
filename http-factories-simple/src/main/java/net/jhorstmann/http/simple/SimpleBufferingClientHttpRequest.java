@@ -45,17 +45,14 @@ final class SimpleBufferingClientHttpRequest implements ClientHttpRequest {
 
 	private final HttpURLConnection connection;
 
-	private final boolean outputStreaming;
 	private final HttpHeaders headers = new HttpHeaders();
 	private ByteArrayOutputStream bufferedOutput = new ByteArrayOutputStream(1024);
 	private boolean executed = false;
 
 
-	SimpleBufferingClientHttpRequest(HttpURLConnection connection, boolean outputStreaming) {
+	SimpleBufferingClientHttpRequest(HttpURLConnection connection) {
 		this.connection = connection;
-		this.outputStreaming = outputStreaming;
 	}
-
 
 	@Override
 	public HttpMethod getMethod() {
@@ -69,45 +66,6 @@ final class SimpleBufferingClientHttpRequest implements ClientHttpRequest {
 		}
 		catch (URISyntaxException ex) {
 			throw new IllegalStateException("Could not get HttpURLConnection URI: " + ex.getMessage(), ex);
-		}
-	}
-
-	protected ClientHttpResponse executeInternal(HttpHeaders headers, byte[] bufferedOutput) throws IOException {
-		addHeaders(this.connection, headers);
-		// JDK <1.8 doesn't support getOutputStream with HTTP DELETE
-		if (HttpMethod.DELETE == getMethod() && bufferedOutput.length == 0) {
-			this.connection.setDoOutput(false);
-		}
-		if (this.connection.getDoOutput() && this.outputStreaming) {
-			this.connection.setFixedLengthStreamingMode(bufferedOutput.length);
-		}
-		this.connection.connect();
-		if (this.connection.getDoOutput()) {
-			copy(bufferedOutput, this.connection.getOutputStream());
-		}
-		else {
-			// Immediately trigger the request in a no-output scenario as well
-			this.connection.getResponseCode();
-		}
-		return new SimpleClientHttpResponse(this.connection);
-	}
-
-	private void copy(byte[] bufferedOutput, OutputStream out) throws IOException {
-		if (bufferedOutput == null) {
-			throw new IllegalArgumentException("No input byte array specified");
-		}
-		if (out == null) {
-			throw new IllegalArgumentException("No OutputStream specified");
-		}
-		try {
-			out.write(bufferedOutput);
-		}
-		finally {
-			try {
-				out.close();
-			}
-			catch (IOException ex) {
-			}
 		}
 	}
 
@@ -131,7 +89,7 @@ final class SimpleBufferingClientHttpRequest implements ClientHttpRequest {
 	 * @param connection the connection to add the headers to
 	 * @param headers the headers to add
 	 */
-	static void addHeaders(HttpURLConnection connection, HttpHeaders headers) {
+	private static void addHeaders(HttpURLConnection connection, HttpHeaders headers) {
 		for (Map.Entry<String, List<String>> entry : headers.entrySet()) {
 			String headerName = entry.getKey();
 			if (HttpHeaders.COOKIE.equalsIgnoreCase(headerName)) {  // RFC 6265
@@ -147,16 +105,28 @@ final class SimpleBufferingClientHttpRequest implements ClientHttpRequest {
 		}
 	}
 
-	protected OutputStream getBodyInternal(HttpHeaders headers) throws IOException {
-		return this.bufferedOutput;
-	}
-
 	protected ClientHttpResponse executeInternal(HttpHeaders headers) throws IOException {
-		byte[] bytes = this.bufferedOutput.toByteArray();
+		final int size = this.bufferedOutput.size();
 		if (headers.getContentLength() < 0) {
-			headers.setContentLength(bytes.length);
+			headers.setContentLength(size);
 		}
-		ClientHttpResponse result = executeInternal(headers, bytes);
+		addHeaders(this.connection, headers);
+		// JDK <1.8 doesn't support getOutputStream with HTTP DELETE
+		if (HttpMethod.DELETE == getMethod() && size > 0) {
+			this.connection.setDoOutput(false);
+		}
+		if (this.connection.getDoOutput()) {
+			this.connection.setFixedLengthStreamingMode(size);
+		}
+		this.connection.connect();
+		if (this.connection.getDoOutput()) {
+			this.bufferedOutput.writeTo(this.connection.getOutputStream());
+		}
+		else {
+			// Immediately trigger the request in a no-output scenario as well
+			this.connection.getResponseCode();
+		}
+		ClientHttpResponse result = new SimpleClientHttpResponse(this.connection);
 		this.bufferedOutput = null;
 		return result;
 	}
@@ -169,7 +139,7 @@ final class SimpleBufferingClientHttpRequest implements ClientHttpRequest {
 	@Override
 	public final OutputStream getBody() throws IOException {
 		assertNotExecuted();
-		return getBodyInternal(this.headers);
+		return this.bufferedOutput;
 	}
 
 	@Override

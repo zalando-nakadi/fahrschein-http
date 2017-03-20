@@ -79,10 +79,6 @@ final class HttpComponentsClientHttpRequest implements ClientHttpRequest {
 		return this.httpRequest.getURI();
 	}
 
-	HttpContext getHttpContext() {
-		return this.httpContext;
-	}
-
 
 	protected ClientHttpResponse executeInternal(HttpHeaders headers, byte[] bufferedOutput) throws IOException {
 		addHeaders(this.httpRequest, headers);
@@ -117,7 +113,7 @@ final class HttpComponentsClientHttpRequest implements ClientHttpRequest {
 	 * @param httpRequest the request to add the headers to
 	 * @param headers the headers to add
 	 */
-	static void addHeaders(HttpUriRequest httpRequest, HttpHeaders headers) {
+	private static void addHeaders(HttpUriRequest httpRequest, HttpHeaders headers) {
 		for (Map.Entry<String, List<String>> entry : headers.entrySet()) {
 			String headerName = entry.getKey();
 			if (HttpHeaders.COOKIE.equalsIgnoreCase(headerName)) {  // RFC 6265
@@ -133,11 +129,7 @@ final class HttpComponentsClientHttpRequest implements ClientHttpRequest {
 		}
 	}
 
-	protected OutputStream getBodyInternal(HttpHeaders headers) throws IOException {
-		return this.bufferedOutput;
-	}
-
-	protected ClientHttpResponse executeInternal(HttpHeaders headers) throws IOException {
+	private ClientHttpResponse executeInternal(HttpHeaders headers) throws IOException {
 		byte[] bytes = this.bufferedOutput.toByteArray();
 		if (headers.getContentLength() < 0) {
 			headers.setContentLength(bytes.length);
@@ -155,7 +147,7 @@ final class HttpComponentsClientHttpRequest implements ClientHttpRequest {
 	@Override
 	public final OutputStream getBody() throws IOException {
 		assertNotExecuted();
-		return getBodyInternal(this.headers);
+		return this.bufferedOutput;
 	}
 
 	@Override
@@ -170,7 +162,7 @@ final class HttpComponentsClientHttpRequest implements ClientHttpRequest {
 	 * Assert that this request has not been {@linkplain #execute() executed} yet.
 	 * @throws IllegalStateException if this request has been executed
 	 */
-	protected void assertNotExecuted() {
+	private void assertNotExecuted() {
 		if (this.executed) {
 			throw new IllegalStateException("ClientHttpRequest already executed");
 		}
