@@ -16,11 +16,11 @@
 
 package net.jhorstmann.http.apache;
 
-import net.jhorstmann.http.shared.AbstractClientHttpResponse;
 import org.apache.http.Header;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.client.ClientHttpResponse;
 
 import java.io.ByteArrayInputStream;
@@ -39,7 +39,7 @@ import java.io.InputStream;
  * @since 3.1
  * @see HttpComponentsClientHttpRequest#execute()
  */
-final class HttpComponentsClientHttpResponse extends AbstractClientHttpResponse {
+final class HttpComponentsClientHttpResponse implements ClientHttpResponse {
 
 	private final HttpResponse httpResponse;
 
@@ -90,4 +90,8 @@ final class HttpComponentsClientHttpResponse extends AbstractClientHttpResponse 
 		}
 	}
 
+	@Override
+	public HttpStatus getStatusCode() throws IOException {
+		return HttpStatus.valueOf(getRawStatusCode());
+	}
 }

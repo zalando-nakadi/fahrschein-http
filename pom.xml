@@ -17,7 +17,6 @@
 
     <modules>
         <module>http-factories-api</module>
-        <module>http-factories-shared</module>
         <module>http-factories-simple</module>
         <module>http-factories-apache</module>
     </modules>

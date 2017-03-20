@@ -16,7 +16,6 @@
 
 package net.jhorstmann.http.apache;
 
-import net.jhorstmann.http.shared.AbstractClientHttpRequest;
 import org.apache.http.Header;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpEntityEnclosingRequest;
@@ -47,16 +46,18 @@ import java.net.URI;
  * @since 4.0
  * @see HttpComponentsClientHttpRequestFactory#createRequest(java.net.URI, org.springframework.http.HttpMethod)
  */
-final class HttpComponentsStreamingClientHttpRequest extends AbstractClientHttpRequest
-		implements StreamingHttpOutputMessage {
+final class HttpComponentsStreamingClientHttpRequest
+		implements StreamingHttpOutputMessage, ClientHttpRequest {
 
 	private final HttpClient httpClient;
 
 	private final HttpUriRequest httpRequest;
 
 	private final HttpContext httpContext;
+	private final HttpHeaders headers = new HttpHeaders();
 
 	private Body body;
+	private boolean executed = false;
 
 
 	HttpComponentsStreamingClientHttpRequest(HttpClient client, HttpUriRequest request, HttpContext context) {
@@ -82,12 +83,10 @@ final class HttpComponentsStreamingClientHttpRequest extends AbstractClientHttpR
 		this.body = body;
 	}
 
-	@Override
 	protected OutputStream getBodyInternal(HttpHeaders headers) throws IOException {
 		throw new UnsupportedOperationException("getBody not supported");
 	}
 
-	@Override
 	protected ClientHttpResponse executeInternal(HttpHeaders headers) throws IOException {
 		HttpComponentsClientHttpRequest.addHeaders(this.httpRequest, headers);
 
@@ -99,6 +98,35 @@ final class HttpComponentsStreamingClientHttpRequest extends AbstractClientHttpR
 
 		HttpResponse httpResponse = this.httpClient.execute(this.httpRequest, this.httpContext);
 		return new HttpComponentsClientHttpResponse(httpResponse);
+	}
+
+	@Override
+	public final HttpHeaders getHeaders() {
+		return (this.executed ? HttpHeaders.readOnlyHttpHeaders(this.headers) : this.headers);
+	}
+
+	@Override
+	public final OutputStream getBody() throws IOException {
+		assertNotExecuted();
+		return getBodyInternal(this.headers);
+	}
+
+	@Override
+	public final ClientHttpResponse execute() throws IOException {
+		assertNotExecuted();
+		ClientHttpResponse result = executeInternal(this.headers);
+		this.executed = true;
+		return result;
+	}
+
+	/**
+	 * Assert that this request has not been {@linkplain #execute() executed} yet.
+	 * @throws IllegalStateException if this request has been executed
+	 */
+	protected void assertNotExecuted() {
+		if (this.executed) {
+			throw new IllegalStateException("ClientHttpRequest already executed");
+		}
 	}
 
 

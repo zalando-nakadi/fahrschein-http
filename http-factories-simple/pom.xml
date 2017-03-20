@@ -20,10 +20,5 @@
             <version>${project.version}</version>
             <scope>provided</scope>
         </dependency>
-        <dependency>
-            <groupId>net.jhorstmann</groupId>
-            <artifactId>http-factories-shared</artifactId>
-            <version>${project.version}</version>
-        </dependency>
     </dependencies>
 </project>

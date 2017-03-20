@@ -16,8 +16,8 @@
 
 package net.jhorstmann.http.simple;
 
-import net.jhorstmann.http.shared.AbstractClientHttpResponse;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.client.ClientHttpResponse;
 
 import java.io.IOException;
@@ -33,7 +33,7 @@ import java.net.HttpURLConnection;
  * @author Brian Clozel
  * @since 3.0
  */
-final class SimpleClientHttpResponse extends AbstractClientHttpResponse {
+final class SimpleClientHttpResponse implements ClientHttpResponse {
 
 	private final HttpURLConnection connection;
 
@@ -98,4 +98,8 @@ final class SimpleClientHttpResponse extends AbstractClientHttpResponse {
 		}
 	}
 
+	@Override
+	public HttpStatus getStatusCode() throws IOException {
+		return HttpStatus.valueOf(getRawStatusCode());
+	}
 }

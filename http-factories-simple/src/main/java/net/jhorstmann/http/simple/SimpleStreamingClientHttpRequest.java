@@ -16,7 +16,6 @@
 
 package net.jhorstmann.http.simple;
 
-import net.jhorstmann.http.shared.AbstractClientHttpRequest;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.client.ClientHttpRequest;
@@ -37,15 +36,17 @@ import java.net.URISyntaxException;
  * @since 3.0
  * @see SimpleClientHttpRequestFactory#createRequest(java.net.URI, HttpMethod)
  */
-final class SimpleStreamingClientHttpRequest extends AbstractClientHttpRequest {
+final class SimpleStreamingClientHttpRequest implements ClientHttpRequest {
 
 	private final HttpURLConnection connection;
 
 	private final int chunkSize;
+	private final HttpHeaders headers = new HttpHeaders();
 
 	private OutputStream body;
 
 	private final boolean outputStreaming;
+	private boolean executed = false;
 
 
 	SimpleStreamingClientHttpRequest(HttpURLConnection connection, int chunkSize, boolean outputStreaming) {
@@ -69,7 +70,6 @@ final class SimpleStreamingClientHttpRequest extends AbstractClientHttpRequest {
 		}
 	}
 
-	@Override
 	protected OutputStream getBodyInternal(HttpHeaders headers) throws IOException {
 		if (this.body == null) {
 			if (this.outputStreaming) {
@@ -91,7 +91,6 @@ final class SimpleStreamingClientHttpRequest extends AbstractClientHttpRequest {
 		return new NonClosingOutputStream(this.body);
 	}
 
-	@Override
 	protected ClientHttpResponse executeInternal(HttpHeaders headers) throws IOException {
 		try {
 			if (this.body != null) {
@@ -108,6 +107,35 @@ final class SimpleStreamingClientHttpRequest extends AbstractClientHttpRequest {
 			// ignore
 		}
 		return new SimpleClientHttpResponse(this.connection);
+	}
+
+	@Override
+	public final HttpHeaders getHeaders() {
+		return (this.executed ? HttpHeaders.readOnlyHttpHeaders(this.headers) : this.headers);
+	}
+
+	@Override
+	public final OutputStream getBody() throws IOException {
+		assertNotExecuted();
+		return getBodyInternal(this.headers);
+	}
+
+	@Override
+	public final ClientHttpResponse execute() throws IOException {
+		assertNotExecuted();
+		ClientHttpResponse result = executeInternal(this.headers);
+		this.executed = true;
+		return result;
+	}
+
+	/**
+	 * Assert that this request has not been {@linkplain #execute() executed} yet.
+	 * @throws IllegalStateException if this request has been executed
+	 */
+	protected void assertNotExecuted() {
+		if (this.executed) {
+			throw new IllegalStateException("ClientHttpRequest already executed");
+		}
 	}
 
 	public static class NonClosingOutputStream extends FilterOutputStream {

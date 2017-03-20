@@ -16,12 +16,12 @@
 
 package net.jhorstmann.http.simple;
 
-import net.jhorstmann.http.shared.AbstractBufferingClientHttpRequest;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.client.ClientHttpRequest;
 import org.springframework.http.client.ClientHttpResponse;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
@@ -41,11 +41,14 @@ import java.util.Map;
  * @since 3.0
  * @see SimpleClientHttpRequestFactory#createRequest(java.net.URI, HttpMethod)
  */
-final class SimpleBufferingClientHttpRequest extends AbstractBufferingClientHttpRequest {
+final class SimpleBufferingClientHttpRequest implements ClientHttpRequest {
 
 	private final HttpURLConnection connection;
 
 	private final boolean outputStreaming;
+	private final HttpHeaders headers = new HttpHeaders();
+	private ByteArrayOutputStream bufferedOutput = new ByteArrayOutputStream(1024);
+	private boolean executed = false;
 
 
 	SimpleBufferingClientHttpRequest(HttpURLConnection connection, boolean outputStreaming) {
@@ -69,7 +72,6 @@ final class SimpleBufferingClientHttpRequest extends AbstractBufferingClientHttp
 		}
 	}
 
-	@Override
 	protected ClientHttpResponse executeInternal(HttpHeaders headers, byte[] bufferedOutput) throws IOException {
 		addHeaders(this.connection, headers);
 		// JDK <1.8 doesn't support getOutputStream with HTTP DELETE
@@ -145,4 +147,46 @@ final class SimpleBufferingClientHttpRequest extends AbstractBufferingClientHttp
 		}
 	}
 
+	protected OutputStream getBodyInternal(HttpHeaders headers) throws IOException {
+		return this.bufferedOutput;
+	}
+
+	protected ClientHttpResponse executeInternal(HttpHeaders headers) throws IOException {
+		byte[] bytes = this.bufferedOutput.toByteArray();
+		if (headers.getContentLength() < 0) {
+			headers.setContentLength(bytes.length);
+		}
+		ClientHttpResponse result = executeInternal(headers, bytes);
+		this.bufferedOutput = null;
+		return result;
+	}
+
+	@Override
+	public final HttpHeaders getHeaders() {
+		return (this.executed ? HttpHeaders.readOnlyHttpHeaders(this.headers) : this.headers);
+	}
+
+	@Override
+	public final OutputStream getBody() throws IOException {
+		assertNotExecuted();
+		return getBodyInternal(this.headers);
+	}
+
+	@Override
+	public final ClientHttpResponse execute() throws IOException {
+		assertNotExecuted();
+		ClientHttpResponse result = executeInternal(this.headers);
+		this.executed = true;
+		return result;
+	}
+
+	/**
+	 * Assert that this request has not been {@linkplain #execute() executed} yet.
+	 * @throws IllegalStateException if this request has been executed
+	 */
+	protected void assertNotExecuted() {
+		if (this.executed) {
+			throw new IllegalStateException("ClientHttpRequest already executed");
+		}
+	}
 }
