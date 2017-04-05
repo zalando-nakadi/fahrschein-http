@@ -5,10 +5,10 @@
     <modelVersion>4.0.0</modelVersion>
 
     <parent>
-        <groupId>net.jhorstmann</groupId>
-        <artifactId>http-factories</artifactId>
+        <groupId>org.zalando</groupId>
+        <artifactId>fahrschein-http</artifactId>
         <version>1.0-SNAPSHOT</version>
     </parent>
-    <artifactId>http-factories-api</artifactId>
+    <artifactId>fahrschein-http-api</artifactId>
 
 </project>

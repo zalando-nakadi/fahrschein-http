@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package net.jhorstmann.http.simple;
+package org.zalando.fahrschein.http.simple;
 
 import org.springframework.http.HttpMethod;
 import org.springframework.http.client.ClientHttpRequest;

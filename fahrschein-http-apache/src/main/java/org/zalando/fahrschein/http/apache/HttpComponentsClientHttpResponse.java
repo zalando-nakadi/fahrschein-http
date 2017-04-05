@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package net.jhorstmann.http.apache;
+package org.zalando.fahrschein.http.apache;
 
 import org.apache.http.Header;
 import org.apache.http.HttpEntity;

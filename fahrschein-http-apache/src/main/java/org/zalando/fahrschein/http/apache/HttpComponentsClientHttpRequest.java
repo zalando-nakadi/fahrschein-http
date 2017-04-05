@@ -14,8 +14,16 @@
  * limitations under the License.
  */
 
-package net.jhorstmann.http.simple;
+package org.zalando.fahrschein.http.apache;
 
+import org.apache.http.HttpEntity;
+import org.apache.http.HttpEntityEnclosingRequest;
+import org.apache.http.HttpResponse;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.methods.HttpUriRequest;
+import org.apache.http.entity.ByteArrayEntity;
+import org.apache.http.protocol.HTTP;
+import org.apache.http.protocol.HttpContext;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.client.ClientHttpRequest;
@@ -24,47 +32,51 @@ import org.springframework.http.client.ClientHttpResponse;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.net.HttpURLConnection;
 import java.net.URI;
-import java.net.URISyntaxException;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
 /**
- * {@link ClientHttpRequest} implementation that uses standard JDK facilities to
- * execute buffered requests. Created via the {@link SimpleClientHttpRequestFactory}.
+ * {@link ClientHttpRequest} implementation based on
+ * Apache HttpComponents HttpClient.
  *
+ * <p>Created via the {@link HttpComponentsClientHttpRequestFactory}.
+ *
+ * @author Oleg Kalnichevski
  * @author Arjen Poutsma
  * @author Juergen Hoeller
  * @author Joern Horstmann
- * @see SimpleClientHttpRequestFactory#createRequest(java.net.URI, HttpMethod)
+ * @see HttpComponentsClientHttpRequestFactory#createRequest(URI, HttpMethod)
  */
-final class SimpleBufferingClientHttpRequest implements ClientHttpRequest {
+final class HttpComponentsClientHttpRequest implements ClientHttpRequest {
 
-	private final HttpURLConnection connection;
+	private final HttpClient httpClient;
+	private final HttpUriRequest httpRequest;
+
+	private final HttpContext httpContext;
 	private final HttpHeaders headers;
 	private ByteArrayOutputStream bufferedOutput;
 	private boolean executed;
 
-	SimpleBufferingClientHttpRequest(HttpURLConnection connection) {
-		this.connection = connection;
+
+	HttpComponentsClientHttpRequest(HttpClient client, HttpUriRequest request, HttpContext context) {
+		this.httpClient = client;
+		this.httpRequest = request;
+		this.httpContext = context;
 		this.headers = new HttpHeaders();
 	}
 
+
 	@Override
 	public HttpMethod getMethod() {
-		return Enum.valueOf(HttpMethod.class, this.connection.getRequestMethod());
+		return HttpMethod.resolve(this.httpRequest.getMethod());
 	}
 
 	@Override
 	public URI getURI() {
-		try {
-			return this.connection.getURL().toURI();
-		} catch (URISyntaxException ex) {
-			throw new IllegalStateException("Could not get HttpURLConnection URI: " + ex.getMessage(), ex);
-		}
+		return this.httpRequest.getURI();
 	}
 
 	private static String collectionToDelimitedString(Collection<?> coll, String delim) {
@@ -82,43 +94,35 @@ final class SimpleBufferingClientHttpRequest implements ClientHttpRequest {
 		return sb.toString();
 	}
 
-	private ClientHttpResponse executeInternal() throws IOException {
-		final int size = this.bufferedOutput != null ? this.bufferedOutput.size() : 0;
-		if (this.headers.getContentLength() < 0) {
-			this.headers.setContentLength(size);
+	private ClientHttpResponse executeInternal(HttpHeaders headers) throws IOException {
+		final byte[] bytes = this.bufferedOutput != null ? this.bufferedOutput.toByteArray() : new byte[0];
+
+		if (headers.getContentLength() < 0) {
+			headers.setContentLength(bytes.length);
 		}
 
 		for (Map.Entry<String, List<String>> entry : headers.entrySet()) {
-			final String headerName = entry.getKey();
+			String headerName = entry.getKey();
 			if (HttpHeaders.COOKIE.equalsIgnoreCase(headerName)) {  // RFC 6265
-				final String headerValue = collectionToDelimitedString(entry.getValue(), "; ");
-				connection.setRequestProperty(headerName, headerValue);
-			} else {
+				String headerValue = collectionToDelimitedString(entry.getValue(), "; ");
+				this.httpRequest.addHeader(headerName, headerValue);
+			}
+			else if (!HTTP.CONTENT_LEN.equalsIgnoreCase(headerName) &&
+					!HTTP.TRANSFER_ENCODING.equalsIgnoreCase(headerName)) {
 				for (String headerValue : entry.getValue()) {
-					final String actualHeaderValue = headerValue != null ? headerValue : "";
-					connection.addRequestProperty(headerName, actualHeaderValue);
+					this.httpRequest.addHeader(headerName, headerValue);
 				}
 			}
 		}
 
-		// JDK <1.8 doesn't support getOutputStream with HTTP DELETE
-		if (HttpMethod.DELETE == getMethod() && size > 0) {
-			this.connection.setDoOutput(false);
-		}
-		if (this.connection.getDoOutput()) {
-			this.connection.setFixedLengthStreamingMode(size);
+		if (this.httpRequest instanceof HttpEntityEnclosingRequest) {
+			HttpEntityEnclosingRequest entityEnclosingRequest = (HttpEntityEnclosingRequest) this.httpRequest;
+			HttpEntity requestEntity = new ByteArrayEntity(bytes);
+			entityEnclosingRequest.setEntity(requestEntity);
 		}
 
-		this.connection.connect();
-
-		if (this.connection.getDoOutput() && this.bufferedOutput != null) {
-			this.bufferedOutput.writeTo(this.connection.getOutputStream());
-		} else {
-			// Immediately trigger the request in a no-output scenario as well
-			this.connection.getResponseCode();
-		}
-
-		final ClientHttpResponse result = new SimpleClientHttpResponse(this.connection);
+		final HttpResponse httpResponse = this.httpClient.execute(this.httpRequest, this.httpContext);
+		final ClientHttpResponse result = new HttpComponentsClientHttpResponse(httpResponse);
 		this.bufferedOutput = null;
 		return result;
 	}
@@ -132,7 +136,7 @@ final class SimpleBufferingClientHttpRequest implements ClientHttpRequest {
 	public final OutputStream getBody() throws IOException {
 		assertNotExecuted();
 		if (this.bufferedOutput == null) {
-			this.bufferedOutput = new ByteArrayOutputStream(1024);
+			this.bufferedOutput =  new ByteArrayOutputStream(1024);
 		}
 		return this.bufferedOutput;
 	}
@@ -140,7 +144,7 @@ final class SimpleBufferingClientHttpRequest implements ClientHttpRequest {
 	@Override
 	public final ClientHttpResponse execute() throws IOException {
 		assertNotExecuted();
-		final ClientHttpResponse result = executeInternal();
+		final ClientHttpResponse result = executeInternal(this.headers);
 		this.executed = true;
 		return result;
 	}
@@ -149,7 +153,7 @@ final class SimpleBufferingClientHttpRequest implements ClientHttpRequest {
 	 * Assert that this request has not been {@linkplain #execute() executed} yet.
 	 * @throws IllegalStateException if this request has been executed
 	 */
-	protected void assertNotExecuted() {
+	private void assertNotExecuted() {
 		if (this.executed) {
 			throw new IllegalStateException("ClientHttpRequest already executed");
 		}
