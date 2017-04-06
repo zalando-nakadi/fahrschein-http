@@ -10,7 +10,8 @@ The main usecase is for the [fahrschein nakadi client](https://github.com/zaland
 
 ## Changes compared to the spring implementation
 
- - The `ClientHttpResponse#close` methods do not try to consume remaining data from the stream, instead the connection is aborted.
+ - The `ClientHttpResponse#close` methods do not try to consume remaining data from the stream, instead the connection is aborted
+   (see [SPR-14040](https://jira.spring.io/browse/SPR-14040) and [SPR-14882](https://jira.spring.io/browse/SPR-14882)).
 
 ## Usage
 
