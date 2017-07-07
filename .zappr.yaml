@@ -1,0 +1,9 @@
+approvals:
+  pattern: "^(:\\+1:|:thumbsup:|[Ll][Gg][Tt][Mm])$"
+  minimum: 1
+  from:
+    orgs:
+      - zalando
+      - zalando-incubator
+      - zalando-nakadi
+collaborators: true
